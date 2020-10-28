@@ -20,6 +20,8 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.orm.jpa.JpaTransactionManager;
 
 import javax.persistence.EntityManagerFactory;
@@ -57,6 +59,8 @@ public class RealestateJobConfiguration extends DefaultBatchConfigurer {
         return stepBuilderFactory.get("apiCallPartitionStep")
                 .partitioner("apiCallPartitionStep", realestatePartitioner)
                 .step(apiCallStep())
+                .gridSize(6)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
@@ -88,5 +92,10 @@ public class RealestateJobConfiguration extends DefaultBatchConfigurer {
         final JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setDataSource(dataSource);
         return transactionManager;
+    }
+
+    @Bean
+    public TaskExecutor taskExecutor(){
+        return new SimpleAsyncTaskExecutor("batch_partitioner_");
     }
 }
